@@ -1,4 +1,5 @@
 from django.db import models
+from users.models import CustomUser 
 
 # Create your models here.
 from django.db import models
@@ -25,6 +26,9 @@ class Auction(models.Model):
     thumbnail = models.URLField()
     creation_date = models.DateTimeField(auto_now_add=True)
     closing_date = models.DateTimeField()
+
+    auctioneer = models.ForeignKey(CustomUser, related_name='auctions', 
+    on_delete=models.CASCADE) 
     
     class Meta:
         ordering=('id',)
