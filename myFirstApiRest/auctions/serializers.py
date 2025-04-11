@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Category, Auction, Bid
 from django.utils import timezone
+from django.db import models
 from drf_spectacular.utils import extend_schema_field
 
 # Auction serializers
@@ -54,6 +55,15 @@ class BidListCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bid
         fields = "__all__"
+        read_only_fields = ['bidder']
+
+    def validate(self, data):
+        auction = data['auction']
+        price = data['price']
+        max_bid = Bid.objects.filter(auction=auction).aggregate(models.Max('price'))['price__max']
+        if max_bid is not None and price <= max_bid:
+            raise serializers.ValidationError("La puja debe ser mayor que las existentes.")
+        return data
 
 class BidDetailSerializer(serializers.ModelSerializer):
     creation_date = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)

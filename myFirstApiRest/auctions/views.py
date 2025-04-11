@@ -77,9 +77,10 @@ class BidListCreate(generics.ListCreateAPIView):
         auction_id = self.kwargs["auction_id"]
         return Bid.objects.filter(auction_id=auction_id) 
     
-    def perform_create(self, serializer):  # Guardar la puja
+    def perform_create(self, serializer):
         auction_id = self.kwargs["auction_id"]
-        serializer.save(auction_id=auction_id)
+        auction = Auction.objects.get(id=auction_id)
+        serializer.save(auction=auction, bidder=self.request.user)
 
 # Ver, actualizar, eliminar Bid concreta
 class BidRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
