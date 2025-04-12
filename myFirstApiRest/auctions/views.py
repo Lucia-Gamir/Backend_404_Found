@@ -54,7 +54,7 @@ class AuctionListCreate(generics.ListCreateAPIView):
 
 # Ver, actualizar, eliminar auction concreta
 class AuctionRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsOwnerOrAdmin]
+    permission_classes = [IsAuthenticated]
     queryset = Auction.objects.all()
     serializer_class = AuctionDetailSerializer
 
