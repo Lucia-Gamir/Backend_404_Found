@@ -24,14 +24,11 @@ class Auction(models.Model):
     rating = models.DecimalField(max_digits=3, decimal_places=2)
     stock = models.IntegerField()
     brand = models.CharField(max_length=100)
-    category = models.ForeignKey(Category, related_name='auctions',
-    on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, related_name='auctions', on_delete=models.CASCADE)
     thumbnail = models.URLField()
     creation_date = models.DateTimeField(auto_now_add=True)
     closing_date = models.DateTimeField()
-
-    auctioneer = models.ForeignKey(CustomUser, related_name='auctions', 
-    on_delete=models.CASCADE) 
+    auctioneer = models.ForeignKey(CustomUser, related_name='auctions', on_delete=models.CASCADE) 
     
     class Meta:
         ordering=('id',)
@@ -79,9 +76,3 @@ class Bid(models.Model):
     
     def __str__(self):
         return f"Id: {self.id}, Auction: {self.auction.title}, Bidder: {self.bidder.username}"
-    
-    def save(self, *args, **kwargs):
-        max_bid = Bid.objects.filter(auction=self.auction).aggregate(models.Max('price'))['price__max']
-        if max_bid and self.price <= max_bid:
-            raise ValueError('La puja debe ser mayor que las anteriores.')
-        super().save(*args, **kwargs)

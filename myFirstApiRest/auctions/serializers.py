@@ -106,3 +106,19 @@ class BidDetailSerializer(serializers.ModelSerializer):
 
     def get_bidder_username(self, obj):
         return obj.bidder.username
+    
+    def validate(self, data):
+        auction = data['auction']
+        price = data['price']
+
+        if price <= 0:
+            raise serializers.ValidationError("El precio de la puja debe ser un número positivo.")
+        
+        max_bid = Bid.objects.filter(auction=auction).aggregate(models.Max('price'))['price__max']
+        if max_bid is not None and price <= max_bid:
+            raise serializers.ValidationError("La puja debe ser mayor que las existentes.")
+        
+        if auction.closing_date <= timezone.now():
+            raise serializers.ValidationError("La subasta ya ha cerrado, no se puede pujar.")
+        
+        return data

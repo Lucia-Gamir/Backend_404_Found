@@ -20,7 +20,7 @@ class AuctionListCreate(generics.ListCreateAPIView):
     def get_queryset(self):
         queryset = Auction.objects.all()
         texto = self.request.query_params.get("texto", None)
-        categoria = self.request.query_params.get("categoría", None)
+        categoria = self.request.query_params.get("categoria", None)
         precio_min = self.request.query_params.get("precioMin", None)
         precio_max = self.request.query_params.get("precioMax", None)
         rating_min = self.request.query_params.get("ratingMin", None)
