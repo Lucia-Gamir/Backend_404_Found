@@ -2,13 +2,12 @@ from rest_framework import status, generics
 from rest_framework.response import Response 
 from rest_framework_simplejwt.tokens import RefreshToken 
 from .models import CustomUser
-from .serializers import UserSerializer, ChangePasswordSerializer
+from auctions.models import Auction, Bid
+from .serializers import UserSerializer, LoginSerializer, AuctionSerializer, BidSerializer
 from rest_framework import status, generics 
 from rest_framework.views import APIView 
 from rest_framework.response import Response 
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.exceptions import ValidationError 
-from django.contrib.auth.password_validation import validate_password  
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
  
 class UserRegisterView(generics.CreateAPIView): 
@@ -32,13 +31,30 @@ status=status.HTTP_400_BAD_REQUEST)
 class UserListView(generics.ListAPIView): 
     permission_classes = [IsAdminUser] 
     serializer_class = UserSerializer 
-    queryset = CustomUser.objects.all() 
+    queryset = CustomUser.objects.all().order_by('id')
  
 class UserRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView): 
-    permission_classes = [IsAdminUser] 
+    permission_classes = [IsAuthenticated] 
     serializer_class = UserSerializer 
-    queryset = CustomUser.objects.all() 
-        
+    queryset = CustomUser.objects.all().order_by('id')
+
+class LoginView(APIView):
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+
+            return Response({
+                'access': access_token,
+                'username': user.username
+            }, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+           
 class UserProfileView(APIView): 
     permission_classes = [IsAuthenticated]
     
@@ -58,44 +74,18 @@ class UserProfileView(APIView):
         user.delete() 
         return Response(status=status.HTTP_204_NO_CONTENT) 
     
-class ChangePasswordView(APIView): 
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request): 
-        serializer = ChangePasswordSerializer(data=request.data) 
-        user = request.user 
- 
-        if serializer.is_valid(): 
-            if not user.check_password(serializer.validated_data['old_password']): 
-                return Response({"old_password": "Incorrect current password."}, 
-                                status=status.HTTP_400_BAD_REQUEST) 
- 
-            try: 
-                validate_password(serializer.validated_data['new_password'], user) 
-            except ValidationError as e: 
-                return Response({"new_password": e.messages}, 
-status=status.HTTP_400_BAD_REQUEST) 
- 
-            user.set_password(serializer.validated_data['new_password']) 
-            user.save() 
-            return Response({"detail": "Password updated successfully."}) 
- 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
-    
 class LogoutView(APIView): 
     permission_classes = [IsAuthenticated] 
     
     def post(self, request): 
         """Realiza el logout eliminando el RefreshToken (revocar)""" 
         try: 
-            # Obtenemos el RefreshToken del request  
-            #Se esperan que esté en el header Authorization 
+
             refresh_token = request.data.get('refresh', None) 
             if not refresh_token: 
                 return Response({"detail": "No refresh token provided."}, 
 status=status.HTTP_400_BAD_REQUEST) 
  
-            # Revocar el RefreshToken 
             token = RefreshToken(refresh_token) 
             token.blacklist()   
             return Response({"detail": "Logout successful"}, 
@@ -103,3 +93,17 @@ status=status.HTTP_205_RESET_CONTENT)
  
         except Exception as e: 
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST) 
+        
+class MyAuctionsView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AuctionSerializer
+
+    def get_queryset(self):
+        return Auction.objects.filter(creator=self.request.user)
+
+class MyBidsView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = BidSerializer
+
+    def get_queryset(self):
+        return Bid.objects.filter(user=self.request.user)

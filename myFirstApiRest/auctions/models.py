@@ -1,5 +1,8 @@
 from django.db import models
 from users.models import CustomUser 
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+from datetime import timedelta
 
 # Create your models here.
 from django.db import models
@@ -35,7 +38,32 @@ class Auction(models.Model):
     
     def __str__(self):
         return self.title
-    
+
+    def clean(self):
+        errors = {}
+
+        if self.price <= 0:
+            errors['price'] = "El precio debe ser un número positivo."
+
+        if self.stock <= 0:
+            errors['stock'] = "El stock debe ser un número natural positivo."
+
+        if not (1 <= self.rating <= 5):
+            errors['rating'] = "La valoración debe estar entre 1 y 5."
+
+        now = self.creation_date or timezone.now()
+        if self.closing_date <= now:
+            errors['closing_date'] = "La fecha de cierre debe ser posterior a la fecha de creación."
+        elif self.closing_date < now + timedelta(days=15):
+            errors['closing_date'] = "La subasta debe durar al menos 15 días desde su creación."
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
 
 class Bid(models.Model):
     auction = models.ForeignKey(Auction, related_name='bids', on_delete=models.CASCADE)
@@ -45,6 +73,9 @@ class Bid(models.Model):
     
     class Meta:
         ordering = ('id',)
+
+    def get_bidder_username(self, obj):
+        return obj.bidder.username
     
     def __str__(self):
         return f"Id: {self.id}, Auction: {self.auction.title}, Bidder: {self.bidder.username}"
