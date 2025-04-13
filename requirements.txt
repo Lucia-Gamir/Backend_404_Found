@@ -5,8 +5,7 @@ aiohttp-cors==0.7.0
 aiosignal==1.2.0
 alabaster==0.7.12
 
-anaconda-navigator==2.1.4
-anaconda-project==0.10.2
+
 annotated-types==0.7.0
 anyio==3.5.0
 appdirs==1.4.4
