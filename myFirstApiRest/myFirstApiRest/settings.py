@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-u$g30t(#xet^w--7xnsh=%w(ig4_i7duebcl-hk+ym-1auk@%s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '@dpg-cvtoftbe5dus73acd60g-a.oregon-postgres.render.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '@dpg-cvtoftbe5dus73acd60g-a.oregon-postgres.render.com', 'backend-404-found.onrender.com']
 
 
 # Application definition
