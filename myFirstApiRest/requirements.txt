@@ -1,7 +1,8 @@
+# Django y servidor WSGI
 Django==4.2.20
 gunicorn==23.0.0
 
-# Async
+# Async (si usas vistas async)
 aiohttp==3.9.3
 aiohttp-cors==0.7.0
 asgiref==3.8.1
@@ -16,17 +17,18 @@ drf-spectacular==0.28.0
 python-dotenv==1.1.0
 PyJWT==2.4.0
 
-# Base de datos
+# Base de datos y conexión por URL
 psycopg2==2.9.10
+dj-database-url==2.3.0
 
 # Utilidades
 requests==2.27.1
 python-slugify==5.0.2
 
-# Redis
+# Redis (opcional, si usas caché o Celery)
 redis==5.0.3
 
-# Almacenamiento externo
+# Almacenamiento externo (S3, GCP, etc.)
 boto3==1.34.92
 botocore==1.34.92
 google-auth==2.38.0
