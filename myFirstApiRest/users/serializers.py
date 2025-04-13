@@ -2,6 +2,8 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 from .models import CustomUser
 from auctions.models import Auction, Bid
+from datetime import date
+from django.utils.translation import gettext_lazy as _
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False)
@@ -20,6 +22,13 @@ class UserSerializer(serializers.ModelSerializer):
         user = self.instance
         if CustomUser.objects.filter(email=value).exclude(pk=user.pk if user else None).exists():
             raise serializers.ValidationError("Email already in use.")
+        return value
+    
+    def validate_birth_date(self, value):
+        today = date.today()
+        age = today.year - value.year - ((today.month, today.day) < (value.month, value.day))
+        if age < 18:
+            raise serializers.ValidationError("You must be at least 18 years old to register.")
         return value
 
     def create(self, validated_data):

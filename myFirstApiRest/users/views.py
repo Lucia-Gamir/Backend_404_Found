@@ -15,7 +15,7 @@ class UserRegisterView(generics.CreateAPIView):
     queryset = CustomUser.objects.all() 
     serializer_class = UserSerializer 
  
-    def create(self, request, *args, **kwargs): 
+    def create(self, request): 
         serializer = self.get_serializer(data=request.data) 
         if serializer.is_valid(): 
             user = serializer.save() 
