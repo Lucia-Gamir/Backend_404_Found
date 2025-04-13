@@ -13,7 +13,6 @@ from django.shortcuts import get_object_or_404
 
 # Ver auctions
 class AuctionListCreate(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = AuctionListCreateSerializer
 
     # Filtrar en funcion de los query params
@@ -54,7 +53,6 @@ class AuctionListCreate(generics.ListCreateAPIView):
 
 # Ver, actualizar, eliminar auction concreta
 class AuctionRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAuthenticated]
     queryset = Auction.objects.all()
     serializer_class = AuctionDetailSerializer
 
