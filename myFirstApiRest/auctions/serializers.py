@@ -9,6 +9,7 @@ class AuctionBaseSerializer(serializers.ModelSerializer):
     creation_date = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
     closing_date = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ")
     isOpen = serializers.SerializerMethodField(read_only=True)
+    rating = serializers.ReadOnlyField()
 
     class Meta:
         model = Auction

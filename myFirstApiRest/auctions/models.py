@@ -3,6 +3,7 @@ from users.models import CustomUser
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import timedelta
+from django.db.models import Avg
 
 # Create your models here.
 from django.db import models
@@ -21,7 +22,6 @@ class Auction(models.Model):
     title = models.CharField(max_length=150)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    rating = models.DecimalField(max_digits=3, decimal_places=2)
     stock = models.IntegerField()
     brand = models.CharField(max_length=100)
     category = models.ForeignKey(Category, related_name='auctions', on_delete=models.CASCADE)
@@ -60,6 +60,10 @@ class Auction(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
+
+    @property
+    def rating(self):
+        return self.ratings.aggregate(avg=Avg('value'))['avg'] or 0
 
 
 class Bid(models.Model):
