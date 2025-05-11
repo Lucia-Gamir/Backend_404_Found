@@ -1,11 +1,8 @@
 from django.db import models
 from users.models import CustomUser 
 from auctions.models import Auction
-from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-# Create your models here.
-from django.db import models
 
 class Rating(models.Model):
     value = models.IntegerField(

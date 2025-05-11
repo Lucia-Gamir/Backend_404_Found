@@ -8,14 +8,19 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 
 class RatingListCreate(generics.ListCreateAPIView):
     serializer_class = RatingListCreateSerializer
-    queryset = Rating.objects.all()
+    # permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return Rating.objects.all()
 
 
 # Ver, actualizar, eliminar auction concreta
 class RatingRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = RatingDetailSerializer
-    queryset = Rating.objects.all()
-    #permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def get_queryset(self):
+        auction_id = self.kwargs['pk']
+        return Rating.objects.filter(auction=auction_id)
 
     def perform_update(self, serializer):
         serializer.save()

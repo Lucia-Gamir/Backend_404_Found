@@ -44,9 +44,10 @@ class Auction(models.Model):
 
         if self.stock <= 0:
             errors['stock'] = "El stock debe ser un número natural positivo."
-
-        if not (1 <= self.rating <= 5):
-            errors['rating'] = "La valoración debe estar entre 1 y 5."
+        
+        if self.pk:
+            if not (1 <= self.rating <= 5):
+                errors['rating'] = f"{self.rating} La valoración debe estar entre 1 y 5."
 
         now = self.creation_date or timezone.now()
         if self.closing_date <= now:
@@ -58,12 +59,21 @@ class Auction(models.Model):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
+        creating = self.pk is None
         self.full_clean()
         super().save(*args, **kwargs)
+        from ratings.models import Rating
+        if creating:
+            Rating.objects.create(
+                auction=self,
+                user=self.auctioneer,
+                value=1
+            )
 
     @property
     def rating(self):
-        return self.ratings.aggregate(avg=Avg('value'))['avg'] or 0
+        if self.pk:
+            return self.ratings.aggregate(avg=Avg('value'))['avg'] or 0
 
 
 class Bid(models.Model):
@@ -80,3 +90,15 @@ class Bid(models.Model):
     
     def __str__(self):
         return f"Id: {self.id}, Auction: {self.auction.title}, Bidder: {self.bidder.username}"
+    
+
+class Comment(models.Model):
+    title = models.CharField(max_length=100)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    auction = models.ForeignKey('Auction', on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='comments')
+
+    def __str__(self):
+        return f"{self.title} - {self.user.username}"

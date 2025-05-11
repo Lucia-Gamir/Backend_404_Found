@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Auction, Bid
+from .models import Category, Auction, Bid, Comment
 from django.utils import timezone
 from django.db import models
 from drf_spectacular.utils import extend_schema_field
@@ -123,3 +123,13 @@ class BidDetailSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("La subasta ya ha cerrado, no se puede pujar.")
         
         return data
+    
+
+# Coment serializers
+class CommentSerializer(serializers.ModelSerializer):
+    username = serializers.ReadOnlyField(source='user.username')
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'title', 'text', 'created_at', 'updated_at', 'auction', 'user', 'username']
+        read_only_fields = ['created_at', 'updated_at', 'user']
