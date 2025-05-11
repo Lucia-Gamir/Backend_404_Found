@@ -10,6 +10,7 @@ class AuctionBaseSerializer(serializers.ModelSerializer):
     closing_date = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ")
     isOpen = serializers.SerializerMethodField(read_only=True)
     rating = serializers.ReadOnlyField()
+    image = serializers.ImageField(use_url=True)
 
     class Meta:
         model = Auction

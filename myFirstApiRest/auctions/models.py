@@ -25,7 +25,8 @@ class Auction(models.Model):
     stock = models.IntegerField()
     brand = models.CharField(max_length=100)
     category = models.ForeignKey(Category, related_name='auctions', on_delete=models.CASCADE)
-    thumbnail = models.URLField()
+    #thumbnail = models.URLField()
+    image = models.ImageField(upload_to="images", default='images/default.webp')
     creation_date = models.DateTimeField(auto_now_add=True)
     closing_date = models.DateTimeField()
     auctioneer = models.ForeignKey(CustomUser, related_name='auctions', on_delete=models.CASCADE) 
@@ -45,9 +46,9 @@ class Auction(models.Model):
         if self.stock <= 0:
             errors['stock'] = "El stock debe ser un número natural positivo."
         
-        if self.pk:
-            if not (1 <= self.rating <= 5):
-                errors['rating'] = f"{self.rating} La valoración debe estar entre 1 y 5."
+        # if self.pk:
+        #     if not (1 <= self.rating <= 5):
+        #         errors['rating'] = f"{self.rating} La valoración debe estar entre 1 y 5."
 
         now = self.creation_date or timezone.now()
         if self.closing_date <= now:
