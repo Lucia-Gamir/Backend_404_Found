@@ -59,7 +59,6 @@ class Auction(models.Model):
         creating = self.pk is None
         self.full_clean()
         super().save(*args, **kwargs)
-        from ratings.models import Rating
         if creating:
             Rating.objects.create(
                 auction=self,
@@ -70,7 +69,9 @@ class Auction(models.Model):
     @property
     def rating(self):
         if self.pk:
-            return self.ratings.aggregate(avg=Avg('value'))['avg'] or 0
+            avg_rating = self.ratings.aggregate(avg=Avg('value'))['avg']
+            return avg_rating if avg_rating is not None else 1
+        return 1
 
 
 class Bid(models.Model):

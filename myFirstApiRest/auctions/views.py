@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from rest_framework import generics, permissions
 from django.db.models import Q
-from .models import Category, Auction, Bid, Comment
-from .serializers import CategoryListCreateSerializer, CategoryDetailSerializer, AuctionListCreateSerializer, AuctionDetailSerializer, BidListCreateSerializer, BidDetailSerializer, CommentSerializer
+from .models import Category, Auction, Bid, Comment, Rating
+from .serializers import CategoryListCreateSerializer, CategoryDetailSerializer, AuctionListCreateSerializer, AuctionDetailSerializer, BidListCreateSerializer, BidDetailSerializer, CommentSerializer, RatingListCreateSerializer, RatingDetailSerializer
 from rest_framework.views import APIView 
 from rest_framework.permissions import IsAuthenticated 
 from rest_framework.response import Response
@@ -188,4 +188,43 @@ class CommentsRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user != instance.user:
             raise PermissionDenied("No puedes borrar este comentario.")
+        instance.delete()
+
+
+# Ratings
+class RatingListCreate(generics.ListCreateAPIView):
+    serializer_class = RatingListCreateSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        auction_id = self.kwargs['auction_id']
+        try:
+            auction = Auction.objects.get(pk=auction_id)
+        except Auction.DoesNotExist:
+            raise NotFound("Subasta no encontrada.")
+        return Rating.objects.filter(auction=auction)
+
+    def perform_create(self, serializer):
+        auction_id = self.kwargs['auction_id']
+        try:
+            auction = Auction.objects.get(pk=auction_id)
+        except Auction.DoesNotExist:
+            raise NotFound("Subasta no encontrada.")
+        serializer.save(user=self.request.user, auction=auction)
+
+
+# Ver, actualizar, eliminar rating concreta
+class RatingRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Rating.objects.all()
+    serializer_class = RatingDetailSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_update(self, serializer):
+        if self.request.user != self.get_object().user:
+            raise PermissionDenied("No puedes editar esta valoración.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if self.request.user != instance.user:
+            raise PermissionDenied("No puedes borrar esta valoración.")
         instance.delete()

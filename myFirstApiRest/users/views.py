@@ -2,8 +2,8 @@ from rest_framework import status, generics
 from rest_framework.response import Response 
 from rest_framework_simplejwt.tokens import RefreshToken 
 from .models import CustomUser
-from auctions.models import Auction, Bid
-from .serializers import UserSerializer, LoginSerializer, AuctionSerializer, BidSerializer
+from auctions.models import Auction, Bid, Comment, Rating
+from .serializers import UserSerializer, LoginSerializer, AuctionSerializer, BidSerializer, CommentSerializer, RatingSerializer
 from rest_framework import status, generics 
 from rest_framework.views import APIView 
 from rest_framework.response import Response 
@@ -101,7 +101,7 @@ class MyAuctionsView(generics.ListAPIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def get_queryset(self):
-        return Auction.objects.filter(creator=self.request.user)
+        return Auction.objects.filter(auctioneer=self.request.user)
     
     def get_serializer_context(self):
         return {'request': self.request}
@@ -111,4 +111,20 @@ class MyBidsView(generics.ListAPIView):
     serializer_class = BidSerializer
 
     def get_queryset(self):
-        return Bid.objects.filter(user=self.request.user)
+        return Bid.objects.filter(bidder=self.request.user)
+    
+
+class MyCommentsView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        return Comment.objects.filter(user=self.request.user)
+    
+
+class MyRatingsView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = RatingSerializer
+
+    def get_queryset(self):
+        return Rating.objects.filter(user=self.request.user)

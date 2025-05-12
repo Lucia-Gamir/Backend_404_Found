@@ -1,9 +1,10 @@
 from rest_framework import serializers
-from .models import Category, Auction, Bid, Comment
+from .models import Category, Auction, Bid, Comment, Rating
 from django.utils import timezone
 from django.db import models
 from drf_spectacular.utils import extend_schema_field
 from datetime import timedelta
+from users.models import CustomUser
 
 class AuctionBaseSerializer(serializers.ModelSerializer):
     creation_date = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
@@ -134,3 +135,54 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ['id', 'title', 'text', 'created_at', 'updated_at', 'auction', 'user', 'username']
         read_only_fields = ['created_at', 'updated_at', 'user']
+
+
+# Ratings serializers
+class RatingListCreateSerializer(serializers.ModelSerializer):
+    user = serializers.CharField()
+    rating_username = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Rating
+        fields = ["id", "value", "auction", "user", "rating_username"]
+
+    def get_rating_username(self, obj):
+        return obj.user.username
+
+    def validate(self, data):
+        username = data.get('user')
+        auction = data.get('auction')
+
+        try:
+            user_obj = CustomUser.objects.get(username=username)
+        except CustomUser.DoesNotExist:
+            raise serializers.ValidationError({'user': 'Usuario no encontrado.'})
+
+
+        if Rating.objects.filter(user=user_obj, auction=auction).exists():
+            raise serializers.ValidationError("Este usuario ya ha valorado esta subasta.")
+
+        data['user'] = user_obj
+        return data
+    
+
+class RatingDetailSerializer(serializers.ModelSerializer):
+    user = serializers.CharField()
+    rating_username = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Rating
+        fields = ["id", "value", "auction", "user", "rating_username"]
+
+    def get_rating_username(self, obj):
+        return obj.user.username
+
+    def validate(self, data):
+        username = data.get('user')
+        if username:
+            try:
+                user_obj = CustomUser.objects.get(username=username)
+                data['user'] = user_obj
+            except CustomUser.DoesNotExist:
+                raise serializers.ValidationError({'user': 'Usuario no encontrado.'})
+        return data

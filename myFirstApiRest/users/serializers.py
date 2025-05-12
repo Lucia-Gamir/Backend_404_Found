@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from .models import CustomUser
-from auctions.models import Auction, Bid
+from auctions.models import Auction, Bid, Comment, Rating
 from datetime import date
 from django.utils.translation import gettext_lazy as _
 
@@ -69,9 +69,46 @@ class AuctionSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(use_url=True)
     class Meta:
         model = Auction
-        fields = ['id', 'title', 'description', 'start_date', 'end_date', 'price', 'creator', 'image']
+        fields = '__all__'
 
 class BidSerializer(serializers.ModelSerializer):
+    auction_id = serializers.SerializerMethodField()
+    auction_title = serializers.SerializerMethodField()
+
     class Meta:
         model = Bid
-        fields = ['id', 'auction', 'user', 'bid_amount', 'created_at']
+        fields = ['id', 'price', 'creation_date', 'auction_id', 'auction_title']
+
+    def get_auction_id(self, obj):
+        return obj.auction.id
+
+    def get_auction_title(self, obj):
+        return obj.auction.title
+
+class CommentSerializer(serializers.ModelSerializer):
+    auction_id = serializers.SerializerMethodField()
+    auction_title = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'title', 'text', 'created_at', 'auction_id', "auction_title"]
+
+    def get_auction_id(self, obj):
+        return obj.auction.id
+
+    def get_auction_title(self, obj):
+        return obj.auction.title
+
+class RatingSerializer(serializers.ModelSerializer):
+    auction_id = serializers.SerializerMethodField()
+    auction_title = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Rating
+        fields = ['id', 'value', 'user', 'auction_id', 'auction_title']
+
+    def get_auction_id(self, obj):
+        return obj.auction.id
+
+    def get_auction_title(self, obj):
+        return obj.auction.title
