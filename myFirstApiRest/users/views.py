@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+from rest_framework.parsers import MultiPartParser, FormParser
  
 class UserRegisterView(generics.CreateAPIView): 
     permission_classes = [AllowAny] 
@@ -97,9 +98,13 @@ status=status.HTTP_205_RESET_CONTENT)
 class MyAuctionsView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = AuctionSerializer
+    parser_classes = [MultiPartParser, FormParser]
 
     def get_queryset(self):
         return Auction.objects.filter(creator=self.request.user)
+    
+    def get_serializer_context(self):
+        return {'request': self.request}
 
 class MyBidsView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]

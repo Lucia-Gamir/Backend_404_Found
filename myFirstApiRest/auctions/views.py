@@ -11,12 +11,13 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
-
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 # Ver auctions
 class AuctionListCreate(generics.ListCreateAPIView):
     serializer_class = AuctionListCreateSerializer
+    parser_classes = [MultiPartParser, FormParser]
 
     # Filtrar en funcion de los query params
     def get_queryset(self):
@@ -114,6 +115,7 @@ class BidCreateView(generics.CreateAPIView):
 # Para mis auctions
 class UserAuctionListView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
         
@@ -147,7 +149,7 @@ class UserAuctionListView(APIView):
         if brand:
             user_auctions = user_auctions.filter(brand__iexact=brand)
 
-        serializer = AuctionListCreateSerializer(user_auctions, many=True)
+        serializer = AuctionListCreateSerializer(user_auctions, many=True, context={"request": request})
 
         return Response(serializer.data)
     

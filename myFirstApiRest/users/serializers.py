@@ -66,9 +66,10 @@ class LoginSerializer(serializers.Serializer):
         return data
 
 class AuctionSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(use_url=True)
     class Meta:
         model = Auction
-        fields = ['id', 'title', 'description', 'start_date', 'end_date', 'price', 'creator']
+        fields = ['id', 'title', 'description', 'start_date', 'end_date', 'price', 'creator', 'image']
 
 class BidSerializer(serializers.ModelSerializer):
     class Meta:

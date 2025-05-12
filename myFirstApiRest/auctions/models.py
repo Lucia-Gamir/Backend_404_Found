@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Avg
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 # Create your models here.
 from django.db import models
@@ -25,7 +26,6 @@ class Auction(models.Model):
     stock = models.IntegerField()
     brand = models.CharField(max_length=100)
     category = models.ForeignKey(Category, related_name='auctions', on_delete=models.CASCADE)
-    #thumbnail = models.URLField()
     image = models.ImageField(upload_to="images", default='images/default.webp')
     creation_date = models.DateTimeField(auto_now_add=True)
     closing_date = models.DateTimeField()
@@ -45,10 +45,6 @@ class Auction(models.Model):
 
         if self.stock <= 0:
             errors['stock'] = "El stock debe ser un número natural positivo."
-        
-        # if self.pk:
-        #     if not (1 <= self.rating <= 5):
-        #         errors['rating'] = f"{self.rating} La valoración debe estar entre 1 y 5."
 
         now = self.creation_date or timezone.now()
         if self.closing_date <= now:
@@ -103,3 +99,21 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.user.username}"
+    
+
+class Rating(models.Model):
+    value = models.IntegerField(
+        default=1,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(5)
+        ]
+    )
+    user = models.ForeignKey(CustomUser, related_name='ratings', on_delete=models.CASCADE)
+    auction = models.ForeignKey(Auction, related_name='ratings', on_delete=models.CASCADE)
+        
+    class Meta:
+        ordering=('id',)
+    
+    def __str__(self):
+        return self.value
