@@ -12,6 +12,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework import status
+from django.utils import timezone
+from datetime import datetime
 
 
 # Ver auctions
@@ -55,7 +58,6 @@ class AuctionListCreate(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(auctioneer=self.request.user)
 
-# Ver, actualizar, eliminar auction concreta
 class AuctionRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     queryset = Auction.objects.all()
     serializer_class = AuctionDetailSerializer
@@ -69,7 +71,6 @@ class CategoryListCreate(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategoryListCreateSerializer
 
-# Ver, actualizar, eliminar categoría concreta
 class CategoryRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsOwnerOrAdmin]
     queryset = Category.objects.all()
@@ -90,7 +91,6 @@ class BidListCreate(generics.ListCreateAPIView):
         auction = get_object_or_404(Auction, id=auction_id)
         serializer.save(auction=auction, bidder=self.request.user)
 
-# Ver, actualizar, eliminar Bid concreta
 class BidRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsOwnerOrAdmin]
     serializer_class = BidDetailSerializer
@@ -212,8 +212,6 @@ class RatingListCreate(generics.ListCreateAPIView):
             raise NotFound("Subasta no encontrada.")
         serializer.save(user=self.request.user, auction=auction)
 
-
-# Ver, actualizar, eliminar rating concreta
 class RatingRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     queryset = Rating.objects.all()
     serializer_class = RatingDetailSerializer
@@ -228,3 +226,24 @@ class RatingRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
         if self.request.user != instance.user:
             raise PermissionDenied("No puedes borrar esta valoración.")
         instance.delete()
+
+
+# Calendario
+class CalendarView(APIView):
+    def get(self, request, *args, **kwargs):
+        auctions = Auction.objects.all()
+        
+        serializer = AuctionDetailSerializer(auctions, many=True)
+
+        calendar_data = []
+        for auction in serializer.data:
+
+            calendar_data.append({
+                'title': auction['title'],
+                'start': auction['creation_date'],
+                'end': auction['closing_date'],
+                'description': auction['description'],
+                'id': auction['id'],
+            })
+
+        return Response(calendar_data, status=status.HTTP_200_OK)

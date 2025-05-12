@@ -6,6 +6,8 @@ from drf_spectacular.utils import extend_schema_field
 from datetime import timedelta
 from users.models import CustomUser
 
+
+# Auction serializer
 class AuctionBaseSerializer(serializers.ModelSerializer):
     creation_date = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
     closing_date = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ")
@@ -165,7 +167,6 @@ class RatingListCreateSerializer(serializers.ModelSerializer):
         data['user'] = user_obj
         return data
     
-
 class RatingDetailSerializer(serializers.ModelSerializer):
     user = serializers.CharField()
     rating_username = serializers.SerializerMethodField(read_only=True)
