@@ -4,6 +4,7 @@ from .models import CustomUser
 from auctions.models import Auction, Bid, Comment, Rating
 from datetime import date
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False)
@@ -88,27 +89,52 @@ class BidSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     auction_id = serializers.SerializerMethodField()
     auction_title = serializers.SerializerMethodField()
+    auction_price = serializers.SerializerMethodField()
+    auction_category = serializers.SerializerMethodField()
+    auction_state = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Comment
-        fields = ['id', 'title', 'text', 'created_at', 'auction_id', "auction_title"]
+        fields = ['id', 'title', 'text', 'created_at', 'auction_id', "auction_title", 'auction_price', 'auction_category', 'auction_state']
 
     def get_auction_id(self, obj):
         return obj.auction.id
 
     def get_auction_title(self, obj):
         return obj.auction.title
+    
+    def get_auction_price(self, obj):
+        return obj.auction.price
+    
+    def get_auction_category(self, obj):
+        return obj.auction.category.name
+    
+    def get_auction_state(self, obj):
+        return obj.auction.closing_date > timezone.now()
+
 
 class RatingSerializer(serializers.ModelSerializer):
     auction_id = serializers.SerializerMethodField()
     auction_title = serializers.SerializerMethodField()
+    auction_price = serializers.SerializerMethodField()
+    auction_category = serializers.SerializerMethodField()
+    auction_state = serializers.SerializerMethodField()
 
     class Meta:
         model = Rating
-        fields = ['id', 'value', 'user', 'auction_id', 'auction_title']
+        fields = ['id', 'value', 'user', 'auction_id', 'auction_title', 'auction_price', 'auction_category', 'auction_state']
 
     def get_auction_id(self, obj):
         return obj.auction.id
 
     def get_auction_title(self, obj):
         return obj.auction.title
+    
+    def get_auction_price(self, obj):
+        return obj.auction.price
+    
+    def get_auction_category(self, obj):
+        return obj.auction.category.name
+    
+    def get_auction_state(self, obj):
+        return obj.auction.closing_date > timezone.now()
